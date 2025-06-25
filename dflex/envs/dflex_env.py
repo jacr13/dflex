@@ -21,7 +21,7 @@ try:
 except ModuleNotFoundError:
     print("No pxr package")
 
-from gym import spaces
+from gymnasium import spaces
 
 
 def jacobian(output, input, max_out_dim=None):
@@ -92,8 +92,8 @@ class DFlexEnv:
         self.num_actions = num_act
 
         self.obs_space = spaces.Box(
-            np.ones(self.num_observations) * -np.Inf,
-            np.ones(self.num_observations) * np.Inf,
+            np.ones(self.num_observations) * -np.inf,
+            np.ones(self.num_observations) * np.inf,
         )
         self.act_space = spaces.Box(
             np.ones(self.num_actions) * -1.0, np.ones(self.num_actions) * 1.0
@@ -234,7 +234,7 @@ class DFlexEnv:
         }
         if hasattr(self, "primal"):
             extras.update({"primal": self.primal})
-            
+
         if self.no_grad == False:
             extras.update(
                 {
@@ -317,9 +317,9 @@ class DFlexEnv:
             self.state.joint_q.view(self.num_envs, -1)[env_ids, :] = init_joint_q.view(
                 -1, self.num_joint_q
             )[env_ids, :].clone()
-            self.state.joint_qd.view(self.num_envs, -1)[
-                env_ids, :
-            ] = init_joint_qd.view(-1, self.num_joint_qd)[env_ids, :].clone()
+            self.state.joint_qd.view(self.num_envs, -1)[env_ids, :] = (
+                init_joint_qd.view(-1, self.num_joint_qd)[env_ids, :].clone()
+            )
 
             self.progress_buf[env_ids] = 0
 
@@ -385,9 +385,12 @@ class DFlexEnv:
         checkpoint["progress_buf"] = self.progress_buf.clone()
 
         return checkpoint
-    
+
     def rand_act(self):
-        return torch.rand((self.num_envs, self.num_actions), device=self.device)*2.0 - 1.0
+        return (
+            torch.rand((self.num_envs, self.num_actions), device=self.device) * 2.0
+            - 1.0
+        )
 
     def get_number_of_agents(self):
         return self.num_agents

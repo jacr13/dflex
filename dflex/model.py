@@ -9,11 +9,10 @@
 """
 
 import math
-import torch
-import numpy as np
+from typing import List, Tuple
 
-from typing import Tuple
-from typing import List
+import numpy as np
+import torch
 
 Vec3 = List[float]
 Vec4 = List[float]
@@ -38,6 +37,15 @@ JOINT_REVOLUTE = 1
 JOINT_BALL = 2
 JOINT_FIXED = 3
 JOINT_FREE = 4
+
+
+def torch_tensor(array, **kwargs):
+    if isinstance(array, list):
+        if len(array):
+            if isinstance(array[0], np.ndarray) or isinstance(array[0], list):
+                array = np.array(array)
+
+    return torch.tensor(array, **kwargs)
 
 
 class Mesh:
@@ -316,7 +324,7 @@ class Model:
         self.spring_count = 0
         self.contact_count = 0
 
-        self.gravity = torch.tensor(
+        self.gravity = torch_tensor(
             (0.0, -9.8, 0.0), dtype=torch.float32, device=adapter
         )
 
@@ -633,13 +641,13 @@ class Model:
                     add_contact(self.shape_body[i], -1, X_bs, p, 0.0, i)
 
         # send to torch
-        self.contact_body0 = torch.tensor(body0, dtype=torch.int32, device=self.adapter)
-        self.contact_body1 = torch.tensor(body1, dtype=torch.int32, device=self.adapter)
-        self.contact_point0 = torch.tensor(
+        self.contact_body0 = torch_tensor(body0, dtype=torch.int32, device=self.adapter)
+        self.contact_body1 = torch_tensor(body1, dtype=torch.int32, device=self.adapter)
+        self.contact_point0 = torch_tensor(
             point, dtype=torch.float32, device=self.adapter
         )
-        self.contact_dist = torch.tensor(dist, dtype=torch.float32, device=self.adapter)
-        self.contact_material = torch.tensor(
+        self.contact_dist = torch_tensor(dist, dtype=torch.float32, device=self.adapter)
+        self.contact_material = torch_tensor(
             mat, dtype=torch.int32, device=self.adapter
         )
 
@@ -1913,92 +1921,92 @@ class ModelBuilder:
         # particles
 
         # state (initial)
-        m.particle_q = torch.tensor(
+        m.particle_q = torch_tensor(
             self.particle_q, dtype=torch.float32, device=adapter
         )
-        m.particle_qd = torch.tensor(
+        m.particle_qd = torch_tensor(
             self.particle_qd, dtype=torch.float32, device=adapter
         )
 
         # model
-        m.particle_mass = torch.tensor(
+        m.particle_mass = torch_tensor(
             self.particle_mass, dtype=torch.float32, device=adapter
         )
-        m.particle_inv_mass = torch.tensor(
+        m.particle_inv_mass = torch_tensor(
             particle_inv_mass, dtype=torch.float32, device=adapter
         )
 
         # ---------------------
         # collision geometry
 
-        m.shape_transform = torch.tensor(
+        m.shape_transform = torch_tensor(
             transform_flatten_list(self.shape_transform),
             dtype=torch.float32,
             device=adapter,
         )
-        m.shape_body = torch.tensor(self.shape_body, dtype=torch.int32, device=adapter)
-        m.shape_geo_type = torch.tensor(
+        m.shape_body = torch_tensor(self.shape_body, dtype=torch.int32, device=adapter)
+        m.shape_geo_type = torch_tensor(
             self.shape_geo_type, dtype=torch.int32, device=adapter
         )
         m.shape_geo_src = self.shape_geo_src
-        m.shape_geo_scale = torch.tensor(
+        m.shape_geo_scale = torch_tensor(
             self.shape_geo_scale, dtype=torch.float32, device=adapter
         )
-        m.shape_materials = torch.tensor(
+        m.shape_materials = torch_tensor(
             self.shape_materials, dtype=torch.float32, device=adapter
         )
 
         # ---------------------
         # springs
 
-        m.spring_indices = torch.tensor(
+        m.spring_indices = torch_tensor(
             self.spring_indices, dtype=torch.int32, device=adapter
         )
-        m.spring_rest_length = torch.tensor(
+        m.spring_rest_length = torch_tensor(
             self.spring_rest_length, dtype=torch.float32, device=adapter
         )
-        m.spring_stiffness = torch.tensor(
+        m.spring_stiffness = torch_tensor(
             self.spring_stiffness, dtype=torch.float32, device=adapter
         )
-        m.spring_damping = torch.tensor(
+        m.spring_damping = torch_tensor(
             self.spring_damping, dtype=torch.float32, device=adapter
         )
-        m.spring_control = torch.tensor(
+        m.spring_control = torch_tensor(
             self.spring_control, dtype=torch.float32, device=adapter
         )
 
         # ---------------------
         # triangles
 
-        m.tri_indices = torch.tensor(
+        m.tri_indices = torch_tensor(
             self.tri_indices, dtype=torch.int32, device=adapter
         )
-        m.tri_poses = torch.tensor(self.tri_poses, dtype=torch.float32, device=adapter)
-        m.tri_activations = torch.tensor(
+        m.tri_poses = torch_tensor(self.tri_poses, dtype=torch.float32, device=adapter)
+        m.tri_activations = torch_tensor(
             self.tri_activations, dtype=torch.float32, device=adapter
         )
 
         # ---------------------
         # edges
 
-        m.edge_indices = torch.tensor(
+        m.edge_indices = torch_tensor(
             self.edge_indices, dtype=torch.int32, device=adapter
         )
-        m.edge_rest_angle = torch.tensor(
+        m.edge_rest_angle = torch_tensor(
             self.edge_rest_angle, dtype=torch.float32, device=adapter
         )
 
         # ---------------------
         # tetrahedra
 
-        m.tet_indices = torch.tensor(
+        m.tet_indices = torch_tensor(
             self.tet_indices, dtype=torch.int32, device=adapter
         )
-        m.tet_poses = torch.tensor(self.tet_poses, dtype=torch.float32, device=adapter)
-        m.tet_activations = torch.tensor(
+        m.tet_poses = torch_tensor(self.tet_poses, dtype=torch.float32, device=adapter)
+        m.tet_activations = torch_tensor(
             self.tet_activations, dtype=torch.float32, device=adapter
         )
-        m.tet_materials = torch.tensor(
+        m.tet_materials = torch_tensor(
             self.tet_materials, dtype=torch.float32, device=adapter
         )
 
@@ -2010,19 +2018,19 @@ class ModelBuilder:
         # close the muscle waypoint indices
         self.muscle_start.append(len(self.muscle_links))
 
-        m.muscle_start = torch.tensor(
+        m.muscle_start = torch_tensor(
             self.muscle_start, dtype=torch.int32, device=adapter
         )
-        m.muscle_params = torch.tensor(
+        m.muscle_params = torch_tensor(
             self.muscle_params, dtype=torch.float32, device=adapter
         )
-        m.muscle_links = torch.tensor(
+        m.muscle_links = torch_tensor(
             self.muscle_links, dtype=torch.int32, device=adapter
         )
-        m.muscle_points = torch.tensor(
+        m.muscle_points = torch_tensor(
             self.muscle_points, dtype=torch.float32, device=adapter
         )
-        m.muscle_activation = torch.tensor(
+        m.muscle_activation = torch_tensor(
             self.muscle_activation, dtype=torch.float32, device=adapter
         )
 
@@ -2039,7 +2047,9 @@ class ModelBuilder:
             )
             body_X_cm.append(transform(self.body_com[i], quat_identity()))
 
-        m.body_I_m = torch.tensor(body_I_m, dtype=torch.float32, device=adapter)
+        # FIXED: Converted to numpy to avoid pytorch warning
+        body_I_m = np.array(body_I_m)
+        m.body_I_m = torch_tensor(body_I_m, dtype=torch.float32, device=adapter)
 
         articulation_count = len(self.articulation_start)
         joint_coord_count = len(self.joint_q)
@@ -2097,91 +2107,91 @@ class ModelBuilder:
             m.M_size += 6 * joint_count * 6 * joint_count
             m.H_size += dof_count * dof_count
 
-        m.articulation_joint_start = torch.tensor(
+        m.articulation_joint_start = torch_tensor(
             self.articulation_start, dtype=torch.int32, device=adapter
         )
 
         # matrix offsets for batched gemm
-        m.articulation_J_start = torch.tensor(
+        m.articulation_J_start = torch_tensor(
             articulation_J_start, dtype=torch.int32, device=adapter
         )
-        m.articulation_M_start = torch.tensor(
+        m.articulation_M_start = torch_tensor(
             articulation_M_start, dtype=torch.int32, device=adapter
         )
-        m.articulation_H_start = torch.tensor(
+        m.articulation_H_start = torch_tensor(
             articulation_H_start, dtype=torch.int32, device=adapter
         )
 
-        m.articulation_M_rows = torch.tensor(
+        m.articulation_M_rows = torch_tensor(
             articulation_M_rows, dtype=torch.int32, device=adapter
         )
-        m.articulation_H_rows = torch.tensor(
+        m.articulation_H_rows = torch_tensor(
             articulation_H_rows, dtype=torch.int32, device=adapter
         )
-        m.articulation_J_rows = torch.tensor(
+        m.articulation_J_rows = torch_tensor(
             articulation_J_rows, dtype=torch.int32, device=adapter
         )
-        m.articulation_J_cols = torch.tensor(
+        m.articulation_J_cols = torch_tensor(
             articulation_J_cols, dtype=torch.int32, device=adapter
         )
 
-        m.articulation_dof_start = torch.tensor(
+        m.articulation_dof_start = torch_tensor(
             articulation_dof_start, dtype=torch.int32, device=adapter
         )
-        m.articulation_coord_start = torch.tensor(
+        m.articulation_coord_start = torch_tensor(
             articulation_coord_start, dtype=torch.int32, device=adapter
         )
 
         # state (initial)
-        m.joint_q = torch.tensor(self.joint_q, dtype=torch.float32, device=adapter)
-        m.joint_qd = torch.tensor(self.joint_qd, dtype=torch.float32, device=adapter)
+        m.joint_q = torch_tensor(self.joint_q, dtype=torch.float32, device=adapter)
+        m.joint_qd = torch_tensor(self.joint_qd, dtype=torch.float32, device=adapter)
 
         # model
-        m.joint_type = torch.tensor(self.joint_type, dtype=torch.int32, device=adapter)
-        m.joint_parent = torch.tensor(
+        m.joint_type = torch_tensor(self.joint_type, dtype=torch.int32, device=adapter)
+        m.joint_parent = torch_tensor(
             self.joint_parent, dtype=torch.int32, device=adapter
         )
-        m.joint_X_pj = torch.tensor(
+        m.joint_X_pj = torch_tensor(
             transform_flatten_list(self.joint_X_pj), dtype=torch.float32, device=adapter
         )
-        m.joint_X_cm = torch.tensor(
+        m.joint_X_cm = torch_tensor(
             transform_flatten_list(body_X_cm), dtype=torch.float32, device=adapter
         )
-        m.joint_axis = torch.tensor(
+        m.joint_axis = torch_tensor(
             self.joint_axis, dtype=torch.float32, device=adapter
         )
-        m.joint_q_start = torch.tensor(
+        m.joint_q_start = torch_tensor(
             self.joint_q_start, dtype=torch.int32, device=adapter
         )
-        m.joint_qd_start = torch.tensor(
+        m.joint_qd_start = torch_tensor(
             self.joint_qd_start, dtype=torch.int32, device=adapter
         )
 
         # dynamics properties
-        m.joint_armature = torch.tensor(
+        m.joint_armature = torch_tensor(
             self.joint_armature, dtype=torch.float32, device=adapter
         )
 
-        m.joint_target = torch.tensor(
+        m.joint_target = torch_tensor(
             self.joint_target, dtype=torch.float32, device=adapter
         )
-        m.joint_target_ke = torch.tensor(
+        m.joint_target_ke = torch_tensor(
             self.joint_target_ke, dtype=torch.float32, device=adapter
         )
-        m.joint_target_kd = torch.tensor(
+        m.joint_target_kd = torch_tensor(
             self.joint_target_kd, dtype=torch.float32, device=adapter
         )
 
-        m.joint_limit_lower = torch.tensor(
+        m.joint_limit_lower = torch_tensor(
             self.joint_limit_lower, dtype=torch.float32, device=adapter
         )
-        m.joint_limit_upper = torch.tensor(
+        m.joint_limit_upper = torch_tensor(
             self.joint_limit_upper, dtype=torch.float32, device=adapter
         )
-        m.joint_limit_ke = torch.tensor(
+        m.joint_limit_ke = torch_tensor(
             self.joint_limit_ke, dtype=torch.float32, device=adapter
         )
-        m.joint_limit_kd = torch.tensor(
+        m.joint_limit_kd = torch_tensor(
             self.joint_limit_kd, dtype=torch.float32, device=adapter
         )
 
@@ -2209,7 +2219,7 @@ class ModelBuilder:
         m.ground = True
         m.enable_tri_collisions = False
 
-        m.gravity = torch.tensor((0.0, -9.8, 0.0), dtype=torch.float32, device=adapter)
+        m.gravity = torch_tensor((0.0, -9.8, 0.0), dtype=torch.float32, device=adapter)
 
         # allocate space for mass / jacobian matrices
         m.alloc_mass_matrix()
