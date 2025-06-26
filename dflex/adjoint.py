@@ -6,7 +6,7 @@
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
 import os
-import imp
+import importlib
 import ast
 import math
 import inspect
@@ -1760,11 +1760,11 @@ def set_build_env():
 
 def import_module(module_name, path):
     # https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
-    file, path, description = imp.find_module(module_name, [path])
+    file, path, description = importlib.util.find_spec(module_name, [path])
 
     # Close the .so file after load.
     with file:
-        return imp.load_module(module_name, file, path, description)
+        return importlib.import_module(module_name, file, path, description)
 
 
 def rename(name, return_type):
