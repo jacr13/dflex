@@ -228,32 +228,7 @@ class DFlexEnv:
         # Reset environments if exseeded horizon
         truncation = self.progress_buf > self.episode_length - 1
 
-        extras = {
-            "obs_before_reset": self.obs_buf.clone(),
-            "termination": termination,
-            "truncation": truncation,
-        }
-        if hasattr(self, "primal"):
-            extras.update({"primal": self.primal})
-
-        if self.no_grad == False:
-            extras.update(
-                {
-                    "contact_count": self.state.contact_count.clone().detach(),
-                    "contact_forces": self.state.contact_f.clone()
-                    .detach()
-                    .view(self.num_envs, -1, 6),
-                    "body_forces": self.state.body_f_s.clone()
-                    .detach()
-                    .view(self.num_envs, -1, 6),
-                    "accelerations": self.state.body_a_s.clone()
-                    .detach()
-                    .view(self.num_envs, -1, 6),
-                }
-            )
-
-            if self.jacobian and not play:
-                extras.update({"jacobian": jac.cpu().numpy()})
+        extras = self._get_extras(termination, truncation, play=play)
 
         # reset all environments which have been terminated
         done = termination | truncation
@@ -264,6 +239,38 @@ class DFlexEnv:
         self.render()
 
         return self.obs_buf, rew, done, extras
+
+    def _get_extras(self, termination, truncation, play=False, jac=None):
+        extras = {
+            "obs_before_reset": self.obs_buf.clone(),
+            "termination": termination,
+            "truncation": truncation,
+        }
+        if hasattr(self, "primal"):
+            extras.update({"primal": self.primal})
+
+        extras.update(
+            {
+                "joint_q": self.state.joint_q.clone().detach(),
+                "joint_qd": self.state.joint_qd.clone().detach(),
+                "contact_count": self.state.contact_count.clone().detach(),
+                "contact_forces": self.state.contact_f.clone()
+                .detach()
+                .view(self.num_envs, -1, 6),
+                "body_forces": self.state.body_f_s.clone()
+                .detach()
+                .view(self.num_envs, -1, 6),
+                "accelerations": self.state.body_a_s.clone()
+                .detach()
+                .view(self.num_envs, -1, 6),
+            }
+        )
+
+        if self.no_grad == False:
+            if self.jacobian and not play:
+                extras.update({"jacobian": jac.cpu().numpy()})
+
+        return extras
 
     def reset(self, env_ids=None, grads=False, force_reset=False):
         if grads:
@@ -304,7 +311,8 @@ class DFlexEnv:
 
             self.obs_buf = self.observation_from_state(self.state)
 
-        return self.obs_buf
+        extras = self._get_extras(termination=False, truncation=False)
+        return self.obs_buf, extras
 
     def reset_with_state(self, init_joint_q, init_joint_qd, env_ids=None):
         if env_ids is None:
