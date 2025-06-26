@@ -334,7 +334,8 @@ class DFlexEnv:
 
             self.obs_buf = self.observation_from_state(self.state)
 
-        return self.obs_buf
+        extras = self._get_extras(termination=False, truncation=False)
+        return self.obs_buf, extras
 
     def setup_visualizer(self, logdir=None):
         if self.visualize:
