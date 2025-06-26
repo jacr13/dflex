@@ -92,11 +92,12 @@ class DFlexEnv:
         self.num_actions = num_act
 
         self.obs_space = spaces.Box(
-            np.ones(self.num_observations) * -np.inf,
-            np.ones(self.num_observations) * np.inf,
+            np.ones(self.num_observations, dtype=np.float32) * -np.inf,
+            np.ones(self.num_observations, dtype=np.float32) * np.inf,
         )
         self.act_space = spaces.Box(
-            np.ones(self.num_actions) * -1.0, np.ones(self.num_actions) * 1.0
+            np.ones(self.num_actions, dtype=np.float32) * -1.0,
+            np.ones(self.num_actions, dtype=np.float32) * 1.0,
         )
 
         # allocate buffers
