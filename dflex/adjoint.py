@@ -7,6 +7,7 @@
 
 import os
 import importlib
+import sys
 import ast
 import math
 import inspect
@@ -1760,11 +1761,15 @@ def set_build_env():
 
 def import_module(module_name, path):
     # https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
-    file, path, description = importlib.util.find_spec(module_name, [path])
+    module_path = os.path.join(path, module_name + ".py")
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load module {module_name} from {module_path}")
 
-    # Close the .so file after load.
-    with file:
-        return importlib.import_module(module_name, file, path, description)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def rename(name, return_type):
