@@ -332,6 +332,9 @@ class DFlexEnv:
                 init_joint_qd.view(-1, self.num_joint_qd)[env_ids, :].clone()
             )
 
+            # clear action
+            self.state.joint_act.view(self.num_envs, -1)[env_ids, :] = 0.0
+
             self.progress_buf[env_ids] = 0
 
             self.obs_buf = self.observation_from_state(self.state)
