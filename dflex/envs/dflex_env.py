@@ -251,8 +251,10 @@ class DFlexEnv:
 
         extras.update(
             {
-                "joint_q": self.state.joint_q.clone().detach(),
-                "joint_qd": self.state.joint_qd.clone().detach(),
+                "joint_q": self.state.joint_q.view(self.num_envs, -1).clone().detach(),
+                "joint_qd": self.state.joint_qd.view(self.num_envs, -1)
+                .clone()
+                .detach(),
                 "contact_count": self.state.contact_count.clone().detach(),
                 "contact_forces": self.state.contact_f.clone()
                 .detach()
