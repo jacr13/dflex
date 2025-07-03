@@ -322,15 +322,21 @@ class DFlexEnv:
             env_ids = torch.arange(self.num_envs, dtype=torch.long, device=self.device)
 
         if env_ids is not None:
-            # fixed start state
+            # clone the state to avoid gradient error
             self.state.joint_q = self.state.joint_q.clone()
             self.state.joint_qd = self.state.joint_qd.clone()
-            self.state.joint_q.view(self.num_envs, -1)[env_ids, :] = init_joint_q.view(
-                -1, self.num_joint_q
-            )[env_ids, :].clone()
-            self.state.joint_qd.view(self.num_envs, -1)[env_ids, :] = (
-                init_joint_qd.view(-1, self.num_joint_qd)[env_ids, :].clone()
+
+            # fixed start state
+            joint_q, joint_qd = self.static_init_func(env_ids)
+            print(
+                "----",
+                joint_q.shape,
+                joint_qd.shape,
+                init_joint_q.shape,
+                init_joint_qd.shape,
             )
+            self.state.joint_q.view(self.num_envs, -1)[env_ids] = init_joint_q
+            self.state.joint_qd.view(self.num_envs, -1)[env_ids] = init_joint_qd
 
             # clear action
             self.state.joint_act.view(self.num_envs, -1)[env_ids, :] = 0.0
